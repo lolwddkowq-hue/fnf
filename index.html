@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Neon Beat Duel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="app">
+    <!-- Loading Screen -->
+    <section id="loadingScreen" class="screen active">
+      <div class="panel center-panel">
+        <h1>Neon Beat Duel</h1>
+        <p>Loading stage lights...</p>
+        <div class="loading-bar">
+          <div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Title Screen -->
+    <section id="titleScreen" class="screen">
+      <div class="panel title-panel">
+        <h1 class="game-title">Neon Beat Duel</h1>
+        <p class="subtitle">An original browser rhythm battle</p>
+
+        <div class="instructions">
+          <p><strong>PC:</strong> Use ArrowLeft, ArrowDown, ArrowUp, ArrowRight.</p>
+          <p><strong>Mobile:</strong> Use the touch arrow buttons.</p>
+          <p><strong>Pause:</strong> Escape on PC or the Pause button on mobile.</p>
+          <p>Hit glowing notes as they overlap the arrow receptors.</p>
+        </div>
+
+        <p id="deviceHint" class="device-hint">Detecting controls...</p>
+
+        <div class="settings">
+          <label>
+            Note Speed
+            <input id="speedInput" type="range" min="260" max="620" step="20" value="420" />
+            <span id="speedValue">420</span>
+          </label>
+
+          <label>
+            Volume
+            <input id="volumeInput" type="range" min="0" max="100" step="5" value="70" />
+            <span id="volumeValue">70%</span>
+          </label>
+        </div>
+
+        <button id="startButton" class="primary-button">Press Enter / Tap to Start</button>
+
+        <details class="replace-notes">
+          <summary>Replacing music or character art</summary>
+          <p>
+            This project uses Web Audio API beeps and CSS-only characters.
+            To replace the placeholder audio, add your own original audio file and hook it into
+            <code>startSongAudio()</code> in <code>game.js</code>.
+          </p>
+          <p>
+            To replace character art, swap the CSS character divs in the gameplay stage with
+            your own original <code>&lt;img&gt;</code> or <code>&lt;svg&gt;</code> art.
+            Keep the <code>#player</code> and <code>#opponent</code> IDs so the animation hooks still work.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <!-- Gameplay Screen -->
+    <section id="gameplayScreen" class="screen">
+      <div class="top-hud">
+        <div class="hud-card">
+          <span>Score</span>
+          <strong id="scoreText">0</strong>
+        </div>
+
+        <div class="hud-card">
+          <span>Combo</span>
+          <strong id="comboText">0</strong>
+        </div>
+
+        <div class="hud-card">
+          <span>Accuracy</span>
+          <strong id="accuracyText">100%</strong>
+        </div>
+
+        <div class="hud-card">
+          <span>Misses</span>
+          <strong id="missesText">0</strong>
+        </div>
+
+        <button id="pauseButton" class="small-button">Pause</button>
+        <button id="restartButton" class="small-button">Restart</button>
+      </div>
+
+      <div class="health-wrap">
+        <span class="health-name opponent-name">Nova</span>
+
+        <div class="health-track">
+          <div id="opponentHealth" class="health-fill opponent-health"></div>
+          <div id="playerHealth" class="health-fill player-health"></div>
+          <div class="health-center">VS</div>
+        </div>
+
+        <span class="health-name player-name">Riff</span>
+      </div>
+
+      <div id="controlHint" class="control-hint">
+        Keyboard: Arrow Keys · Pause: Escape
+      </div>
+
+      <div id="stage" class="stage">
+        <div class="stage-glow"></div>
+
+        <div id="opponent" class="character opponent">
+          <div class="char-shadow"></div>
+          <div class="char-head">
+            <span class="eye left-eye"></span>
+            <span class="eye right-eye"></span>
+            <span class="mouth"></span>
+          </div>
+          <div class="char-body"></div>
+          <div class="char-arm arm-left"></div>
+          <div class="char-arm arm-right"></div>
+        </div>
+
+        <div class="speaker">
+          <div class="speaker-box">
+            <div class="speaker-ring top-ring"></div>
+            <div class="speaker-ring bottom-ring"></div>
+          </div>
+        </div>
+
+        <div id="player" class="character player">
+          <div class="char-shadow"></div>
+          <div class="char-head">
+            <span class="eye left-eye"></span>
+            <span class="eye right-eye"></span>
+            <span class="mouth"></span>
+          </div>
+          <div class="char-body"></div>
+          <div class="char-arm arm-left"></div>
+          <div class="char-arm arm-right"></div>
+        </div>
+
+        <div id="laneBoard" class="lane-board">
+          <div class="lane lane-left" data-direction="left">
+            <div class="receptor">◀</div>
+            <div class="note-stack"></div>
+          </div>
+
+          <div class="lane lane-down" data-direction="down">
+            <div class="receptor">▼</div>
+            <div class="note-stack"></div>
+          </div>
+
+          <div class="lane lane-up" data-direction="up">
+            <div class="receptor">▲</div>
+            <div class="note-stack"></div>
+          </div>
+
+          <div class="lane lane-right" data-direction="right">
+            <div class="receptor">▶</div>
+            <div class="note-stack"></div>
+          </div>
+        </div>
+
+        <div id="judgmentText" class="judgment"></div>
+        <div id="countdownText" class="countdown"></div>
+
+        <div id="orientationWarning" class="orientation-warning hidden">
+          <div>
+            <strong>Rotate or expand screen</strong>
+            <p>The game needs a little more vertical space.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="touch-controls" aria-label="Touch controls">
+        <button data-touch="left" aria-label="Left">◀</button>
+        <button data-touch="down" aria-label="Down">▼</button>
+        <button data-touch="up" aria-label="Up">▲</button>
+        <button data-touch="right" aria-label="Right">▶</button>
+      </div>
+
+      <div id="pauseOverlay" class="overlay hidden">
+        <div class="panel center-panel">
+          <h2>Paused</h2>
+          <p>Press Escape or Resume to continue.</p>
+          <button id="resumeButton" class="primary-button">Resume</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Screen -->
+    <section id="resultsScreen" class="screen">
+      <div class="panel results-panel">
+        <h1 id="resultTitle">Results</h1>
+
+        <div class="result-grid">
+          <span>Score</span>
+          <strong id="resultScore">0</strong>
+
+          <span>Accuracy</span>
+          <strong id="resultAccuracy">0%</strong>
+
+          <span>Max Combo</span>
+          <strong id="resultMaxCombo">0</strong>
+
+          <span>Misses</span>
+          <strong id="resultMisses">0</strong>
+
+          <span>Rank</span>
+          <strong id="resultRank">F</strong>
+        </div>
+
+        <button id="playAgainButton" class="primary-button">Play Again</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="game.js" defer></script>
+</body>
+</html>
